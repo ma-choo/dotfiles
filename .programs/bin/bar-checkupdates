@@ -1,0 +1,27 @@
+#! /bin/sh
+# this script requires the pacman-contrib package
+
+UPDATEFILE=/tmp/checkupdates
+date_current=$(date +%Y%m%d)
+NF_PACKAGE='\uf8d5'
+
+write_updatefile() {
+	checkupdates > $UPDATEFILE
+	number_of_updates=$(wc -l < $UPDATEFILE)
+	sed -i "1i $date_current" $UPDATEFILE
+	sed -i "2i $number_of_updates" $UPDATEFILE
+}
+
+! [ -e $UPDATEFILE ] && write_updatefile
+date_last_check=$(sed '1!d' $UPDATEFILE)
+[ $date_current -gt $date_last_check ] && write_updatefile
+
+case $1 in
+	-n) # get number of updates
+		number=$(sed '2!d' $UPDATEFILE)
+		echo -e U$NF_PACKAGE $number
+		;;
+	-l) # list all updates
+		cat $UPDATEFILE
+		;;
+esac

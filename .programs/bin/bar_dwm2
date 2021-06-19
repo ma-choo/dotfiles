@@ -1,0 +1,75 @@
+#! /bin/sh
+
+## MODULES
+## -------
+bar_clock() {
+	while true ; do
+		echo C$(date +"%I:%M")
+		sleep 3s
+	done
+}
+
+BAT_PATH='/sys/class/power_supply/BAT0'
+bar_battery() {
+	while true ; do
+		# check if the battery is charging
+		bat_status=$(cat $BAT_PATH/status)
+		case $bat_status in
+			F* | C*) # if plugged in, battery status will read either 'F'ull or 'C'harging
+				bat_charging=ﮣ
+				;;
+			*) # otherwise, the battery is not charging.
+				bat_charging=''
+		esac
+
+		# check battery level
+		bat_capacity=$(cat $BAT_PATH/capacity)
+		if [ $bat_capacity -gt 90 ]; then bat_icon=
+		elif [ $bat_capacity -gt 80 ]; then bat_icon=
+		elif [ $bat_capacity -gt 70 ]; then bat_icon=
+		elif [ $bat_capacity -gt 60 ]; then bat_icon=
+		elif [ $bat_capacity -gt 50 ]; then bat_icon=
+		elif [ $bat_capacity -gt 40 ]; then bat_icon=
+		elif [ $bat_capacity -gt 30 ]; then bat_icon=
+		elif [ $bat_capacity -gt 20 ]; then bat_icon=
+		elif [ $bat_capacity -gt 10 ]; then bat_icon=
+		else bat_icon=
+		fi
+		
+		echo B$bat_charging$bat_icon$bat_capacity%
+		sleep 10s
+	done
+}
+
+## RUN BAR
+## -------
+# create fifo, delete any pre-existing fifo
+BAR_FIFO=/tmp/bar.fifo
+[ -e $BAR_FIFO ] && rm $BAR_FIFO
+mkfifo $BAR_FIFO
+
+# run bar modules and redirect their output to the fifo
+bar_clock > $BAR_FIFO &
+bar_battery > $BAR_FIFO &
+bar-amixer &
+
+# bar main loop
+bar_main() {
+	while read -r line ; do
+		case $line in
+			B*) # battery
+				battery="${line#?}"
+				;;
+			C*) # clock
+				clock="${line#?}"
+				;;
+			V*) # volume
+				volume="${line#?}"
+				;;
+		esac
+		# xsetroot -name "$(printf '\x01 $volume \x02 $battery $clock')"
+		xsetroot -name '\x01 $volume \x02 $battery $clock'
+	done
+}
+
+bar_main < $BAR_FIFO

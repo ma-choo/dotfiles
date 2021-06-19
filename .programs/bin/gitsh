@@ -1,0 +1,11 @@
+#! /bin/sh
+
+gb() {
+	git branch $1
+	git checkout $1
+}
+alias gc='git checkout $1'
+alias gclean='git clean -f'
+alias gmake='sudo make clean install'
+
+echo done

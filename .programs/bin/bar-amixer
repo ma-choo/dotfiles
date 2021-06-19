@@ -1,0 +1,33 @@
+#! /bin/sh
+
+BAR_FIFO=/tmp/bar.fifo
+nf_vol_high='\ufa7d'
+nf_vol_med='\ufa7f'
+nf_vol_low='\ufa7e'
+nf_vol_mute='\ufc5d'
+
+case $1 in
+	-dec)
+		amixer -q sset Master $2%-
+		play -q $HOME/Sounds/ui/switch17.wav &
+		;;
+	-inc)
+		amixer -q sset Master $2%+
+		play -q $HOME/Sounds/ui/switch16.wav &
+		;;
+	-mute)
+		amixer -q sset Master toggle
+		;;
+esac
+
+# parse the output of 'amixer sget Master' to get the volume level and mute status
+amixer_volume=$(awk -F"[][%]" '/Left:/ { print $2 }' <(amixer sget Master))
+amixer_status=$(awk -F"[][]" '/Left:/ { print $4 }' <(amixer sget Master))
+
+if [ $amixer_status = off ]; then amixer_icon=$nf_vol_mute
+elif [ $amixer_volume -gt 66 ]; then amixer_icon=$nf_vol_high
+elif [ $amixer_volume -gt 33 ]; then amixer_icon=$nf_vol_med
+else amixer_icon=$nf_vol_low
+fi
+
+echo -e V$amixer_icon $amixer_volume% > $BAR_FIFO

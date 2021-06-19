@@ -1,0 +1,22 @@
+#! /bin/sh
+
+BAT_PATH='/sys/class/power_supply'
+BAT_NUMBER='BAT0'
+
+bat_online=$(cat $BAT_PATH/AC/online)
+[ bat_online ] && bat_charging=ﮣ || bat_charging=''
+
+bat_capacity=$(cat $BAT_PATH/$BAT_NUMBER/capacity)
+if [ $bat_capacity -gt 90 ]; then bat_icon=
+elif [ $bat_capacity -gt 80 ]; then bat_icon=
+elif [ $bat_capacity -gt 70 ]; then bat_icon=
+elif [ $bat_capacity -gt 60 ]; then bat_icon=
+elif [ $bat_capacity -gt 50 ]; then bat_icon=
+elif [ $bat_capacity -gt 40 ]; then bat_icon=
+elif [ $bat_capacity -gt 30 ]; then bat_icon=
+elif [ $bat_capacity -gt 20 ]; then bat_icon=
+elif [ $bat_capacity -gt 10 ]; then bat_icon=
+else bat_icon=
+fi
+
+echo $bat_charging$bat_icon$bat_capacity%

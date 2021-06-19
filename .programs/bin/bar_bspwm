@@ -1,0 +1,162 @@
+#! /bin/sh
+
+## CONFIGURATION
+## -------------
+# font and size
+FONT='JetBrains Mono Nerd Font:size=12'
+
+# bar dimensions
+BAR_HEIGHT=28 
+BAR_WIDTH= # leave blank to span the width of the monitor
+UNDERLINE_THICKNESS=2
+
+# colors
+CLEAR="#80000000"
+WHITE="#ffffff"
+RED="#ea545c"
+BLUE="#2ca2f5"
+GREEN="#a4bd00"
+
+## NERD FONT ICONS
+## ---------------
+# clock
+nf_clock='\uf017'
+
+# battery
+nf_bat_0='\uf58d'
+nf_bat_10='\uf579'
+nf_bat_20='\uf57a'
+nf_bat_30='\uf57b'
+nf_bat_40='\uf57c'
+nf_bat_50='\uf57d'
+nf_bat_60='\uf57e'
+nf_bat_70='\uf57f'
+nf_bat_80='\uf580'
+nf_bat_90='\uf581'
+nf_bat_100='\uf578'
+nf_plug='\ufba3'
+nf_bolt='\uf0e7'
+
+## PANEL MODULES
+## -------------
+bar_clock() {
+	while true ; do
+		echo -e C$(date +"$nf_clock%I:%M")
+		sleep 3s
+	done
+}
+
+BAT_PATH='/sys/class/power_supply/BAT0'
+bar_battery() {
+	while true ; do
+		# check if the battery is charging
+		bat_status=$(cat $BAT_PATH/status)
+		case $bat_status in
+			F* | C*) # if plugged in, battery status will read either 'F'ull or 'C'harging
+				bat_charging=$nf_plug
+				;;
+			*) # otherwise, the battery is not charging.
+				bat_charging=''
+		esac
+
+		# check battery level
+		bat_capacity=$(cat $BAT_PATH/capacity)
+		if [ $bat_capacity -gt 90 ]; then bat_icon=$nf_bat_100
+		elif [ $bat_capacity -gt 80 ]; then bat_icon=$nf_bat_80
+		elif [ $bat_capacity -gt 60 ]; then bat_icon=$nf_bat_60
+		elif [ $bat_capacity -gt 50 ]; then bat_icon=$nf_bat_50
+		elif [ $bat_capacity -gt 40 ]; then bat_icon=$nf_bat_40
+		elif [ $bat_capacity -gt 20 ]; then bat_icon=$nf_bat_20
+		elif [ $bat_capacity -gt 10 ]; then bat_icon=$nf_bat_10
+		else bat_icon=$nf_bat_0
+		fi
+		
+		echo -e B$bat_charging$bat_icon$bat_capacity%
+		sleep 10s
+	done
+}
+
+## RUN BAR
+## -------
+# find and kill any running instance of lemonbar
+pgrep -x lemonbar > /dev/null && pkill -x lemonbar
+
+# create fifo, delete any pre-existing fifo
+BAR_FIFO=/tmp/bar.fifo
+[ -e $BAR_FIFO ] && rm $BAR_FIFO
+mkfifo $BAR_FIFO
+
+# run bar modules and redirect their output to the fifo
+bar_clock > $BAR_FIFO &
+bar_battery > $BAR_FIFO &
+bar_module_amixer &
+xtitle -t 48 -sf 'T%s\n' > $BAR_FIFO &
+bspc subscribe report > $BAR_FIFO &
+
+# bar main loop
+bar_main() {
+	while read -r line ; do
+		case $line in
+			B*) # battery
+				battery="${line#?}"
+				;;
+			C*) # clock
+				clock="${line#?}"
+				;;
+			V*) # volume
+				volume="${line#?}"
+				;;
+			T*) # title
+				title="${line#?}"
+				;;
+			W*) # bspwm workspaces
+				wm=
+				IFS=':'
+				set -- ${line#?}
+				while [ $# -gt 0 ] ; do
+					item=$1
+					name=
+					case $item in
+						[fFoOuU]*)
+							case $item in
+								f*) # free desktop
+									name=
+									FG=$WHITE
+									;;
+								F*) # focused free desktop
+									name=
+									FG=$BLUE
+									;;
+								o*) # occupied desktop
+									name=
+									FG=$WHITE
+									;;
+								O*) # focused occupied desktop
+									name=
+									FG=$BLUE
+									;;
+								u*) # urgent desktop
+									name=
+									FG=$RED
+									;;
+								U*) # focued urgent desktop
+									name=
+									FG=$BLUE
+									;;
+							esac
+							wm="${wm}%{F${FG}} ${name} %{F-}"
+							;;
+						[LTG]*)
+							# layout, state and flags
+							wm="${wm}%{F$WHITE}%{B$CLEAR} %{B-}%{F-}"
+							;;
+					esac
+					shift
+				done
+				;;
+		esac
+		printf "%s\n" "%{l}$wm%{c}$title%{r}$volume $battery $clock "
+	done
+}
+
+bar_main < $BAR_FIFO | lemonbar -g ${BAR_WIDTH}x${BAR_HEIGHT} -F $WHITE -B $CLEAR -f "$FONT" -u $UNDERLINE_THICKNESS
