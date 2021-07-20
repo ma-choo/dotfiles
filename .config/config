@@ -1,0 +1,134 @@
+### program aliases
+set $term alacritty
+
+### keybindings
+## modifer keys
+set $mod Mod4
+floating_modifier $mod normal
+
+## shortcut keys
+bindsym $mod+r exec wofi --show run
+bindsym $mod+Return exec $term
+bindsym $mod+e exec $term -e ranger
+
+## window keys
+bindsym $mod+h focus left
+bindsym $mod+j focus down
+bindsym $mod+k focus up
+bindsym $mod+l focus right
+bindsym $mod+Shift+h move left
+bindsym $mod+Shift+j move down
+bindsym $mod+Shift+k move up
+bindsym $mod+Shift+l move right
+bindsym $mod+w kill
+bindsym $mod+Space fullscreen
+bindsym $mod+f floating toggle
+bindsym $mod+x resize grow width 20px
+bindsym $mod+y resize grow height 20px
+bindsym $mod+Shift+x resize shrink width 20px
+bindsym $mod+Shift+y resize shrink height 20px
+bindsym $mod+Equal resize grow width 20px ; resize grow height 20px
+bindsym $mod+Minus resize shrink width 20px ; resize shrink height 20px
+
+## workspace keys
+bindsym $mod+1 workspace 1
+bindsym $mod+2 workspace 2
+bindsym $mod+3 workspace 3
+bindsym $mod+4 workspace 4
+bindsym $mod+5 workspace 5
+bindsym $mod+6 workspace 6
+bindsym $mod+7 workspace 7
+bindsym $mod+8 workspace 8
+bindsym $mod+9 workspace 9
+bindsym $mod+Shift+1 move container to workspace 1
+bindsym $mod+Shift+2 move container to workspace 2
+bindsym $mod+Shift+3 move container to workspace 3
+bindsym $mod+Shift+4 move container to workspace 4
+bindsym $mod+Shift+5 move container to workspace 5
+bindsym $mod+Shift+6 move container to workspace 6
+bindsym $mod+Shift+7 move container to workspace 7
+bindsym $mod+Shift+8 move container to workspace 8
+bindsym $mod+Shift+9 move container to workspace 9
+
+## layout keys
+bindsym $mod+s split toggle 
+bindsym $mod+F1 layout toggle split
+bindsym $mod+F2 layout stacking
+bindsym $mod+F3 layout tabbed
+
+## mode keys
+mode "morph" {
+    bindsym x resize grow width 20px
+    bindsym y resize grow height 20px
+	bindsym Shift+x resize shrink width 20px
+    bindsym Shift+y resize shrink height 20px
+    bindsym Equal resize grow width 20px ; resize grow height 20px
+    bindsym Minus resize shrink width 20px ; resize shrink height 20px
+    bindsym Escape mode "default"
+}
+bindsym $mod+m mode "morph"
+
+## other keys
+bindsym $mod+Shift+grave move scratchpad
+bindsym $mod+grave scratchpad show
+bindsym $mod+Shift+r reload
+bindsym $mod+Shift+q exit
+
+### appearence
+font pango:Fira Sans 12
+default_border pixel 2
+hide_edge_borders none
+smart_borders on
+smart_gaps on
+gaps inner 8
+
+## colors
+set $black  #000000
+set $white  #d9d9d9
+set $grey1  #3b3c4a
+set $grey2  #404522
+set $grey3  #4b5162
+set $null   #00000000
+
+## client colors            border    bg        text      indicator child_border			
+client.focused              $grey3    $grey3    $white    $white    $white
+client.focused_inactive     $grey2    $grey2    $white    $white    $white
+client.unfocused            $grey1    $grey1    $white    $white    $null
+client.urgent	            #2f343a	    #900000	    #ffffff	    #900000	    #900000
+
+## bar
+bar {
+	swaybar_command waybar
+}
+
+### input and output
+# device names can be found with
+# 'swaymsg -t get_outputs' or 'swaymsg -t get_inputs'
+
+## display
+# 125% scaling on internal laptop screen
+output LVDS-1 scale 1.25
+# * wildcard to output bg to all displays
+output * bg /usr/share/backgrounds/archlinux/sunset.jpg fill
+
+## touchpad
+input "2:7:SynPS/2_Synaptics_TouchPad" {
+    dwt enabled # disable while typing
+    tap enabled
+    natural_scroll enabled
+}
+
+### other settings
+## window rules
+assign [app_id="firefox"] workspace 1
+assign [app_id="gimp"] workspace 7
+for_window [window_role="pop-up"] floating enable
+for_window [window_role="bubble"] floating enable
+for_window [window_role="dialog"] floating enable
+for_window [window_type="dialog"] floating enable
+for_window [app_id="lximage-qt"] floating enable
+for_window [app_id="firefox"] inhibit_idle fullscreen
+for_window [class="feh"] floating enable
+
+include /etc/sway/config.d/*
+
