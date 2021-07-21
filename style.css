@@ -1,0 +1,30 @@
+* {
+    border: none;
+    border-radius: 0;
+    font-family: Fira Sans Medium;
+    font-size: 16px;
+	margin: 1px;
+    min-height: 0;
+}
+
+window#waybar {
+    background-color: #000000;
+    color: #d9d9d9;
+    transition-property: background-color;
+    transition-duration: .2s;
+}
+
+#workspaces button {
+    padding: 0 8;
+    color: #d9d9d9;
+	border-radius: 30;
+}
+
+#workspaces button:hover {
+	background-color: #2b2b2b;
+	color: #000000;
+}
+
+#workspaces button.focused {
+	background-color: #2b2b2b;
+}

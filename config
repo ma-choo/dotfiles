@@ -1,0 +1,17 @@
+{
+	"layer": "top",
+	"font": "Fira Sans Medium 16",
+
+    "modules-left": ["sway/workspaces", "sway/mode"],
+    "modules-center": ["clock"],
+    "modules-right": ["pulseaudio", "battery"],
+
+    "clock": {
+        "format": "{:%b %-d  %-H:%M}"
+    },
+
+    "battery": {
+        "format": "{icon} {capacity}",
+        "format-icons": ["", "", "", "", ""]
+    }
+}
